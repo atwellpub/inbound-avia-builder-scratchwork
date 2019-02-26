@@ -48,6 +48,7 @@ if (!class_exists('Inbound_AviaTemplate_Builder')) {
             add_filter( 'avf_before_save_alb_post_data' , array( __CLASS__ , 'save_landing_page' ) , 100 , 2 );
 
             add_filter( 'avia_builder_precompile', array( __CLASS__ , 'prepare_content' ) , 100 , 1 );
+            add_filter( 'avf_posts_alb_content', array( __CLASS__ , 'prepare_shortcode' ) , 100 , 1 );
             if (is_admin()) {
                 /* Setup Automatic Updating & Licensing */
                 add_action('admin_init', array(__CLASS__, 'license_setup'));
@@ -79,25 +80,34 @@ if (!class_exists('Inbound_AviaTemplate_Builder')) {
             }
 
             $variation_id = Landing_Pages_Variations::get_current_variation_id();
-            error_log('variation id');
-            error_log($variation_id);
+            //error_log('variation id');
+            //error_log($variation_id);
+
             $post_content = $data['post_content'];
-            error_log('post content');
-            error_log($post_content);
+            //error_log('post content');
+            //error_log($post_content);
+
+            $shortcode = $_POST['_aviaLayoutBuilderCleanData'];
+            //error_log('avia shortcode');
+            //error_log($shortcode);
+
 
             if ( $variation_id > 0 ) {
                 $content_key = 'content' . '-' . $variation_id;
+                $shortcode_key = 'lp_aviaLayoutBuilderCleanData' . '-' . $variation_id;
             } else {
                 $content_key = 'content';
+                $shortcode_key = 'lp_aviaLayoutBuilderCleanData';
             }
 
 
             update_post_meta( $post->ID  , $content_key , $post_content );
+            update_post_meta( $post->ID  , $shortcode_key , $shortcode );
 
             /**
-            error_log('here77');
-            error_log(print_r($data, true));
-            error_log(print_r($postarr, true));
+            //error_log('here77');
+            //error_log(print_r($data, true));
+            //error_log(print_r($postarr, true));
             **/
 
             return $data;
@@ -105,9 +115,30 @@ if (!class_exists('Inbound_AviaTemplate_Builder')) {
         }
 
         public static function prepare_content($content) {
-            error_log(9999);
-            //$clean_data = $this->get_posts_alb_content( $post_ID );
-            return $content;
+            global $post;
+
+            $variation_id = Landing_Pages_Variations::get_current_variation_id();
+            if ( $variation_id > 0 ) {
+                $content_key = 'content' . '-' . $variation_id;
+            } else {
+                $content_key = 'content';
+            }
+
+            return get_post_meta($post->ID , $shortcode_key , true);
+
+        }
+
+        public static function prepare_shortcode($content) {
+            global $post;
+            //error_log('loading prepare shortcode');
+            $variation_id = Landing_Pages_Variations::get_current_variation_id();
+            if ( $variation_id > 0 ) {
+                $shortcode_key = 'lp_aviaLayoutBuilderCleanData' . '-' . $variation_id;
+            } else {
+                $shortcode_key = 'lp_aviaLayoutBuilderCleanData';
+            }
+
+            return get_post_meta($post->ID , $shortcode_key , true);
         }
 
         /**
